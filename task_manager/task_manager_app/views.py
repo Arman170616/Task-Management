@@ -51,9 +51,34 @@ def user_registration(request):
 
 @api_view(['POST'])
 def user_login(request):
-    # Delegate the login logic to the built-in TokenObtainPairView from SimpleJWT
+    username = request.data.get('username')
+    password = request.data.get('password')
+
+    # Check if the username or password is missing
+    if not username or not password:    
+        return Response({'error': 'Username and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Check if the username exists
+    try:
+        user = User.objects.get(username=username)
+    except User.DoesNotExist:
+        return Response({'error': 'Invalid username.'}, status=status.HTTP_400_BAD_REQUEST)
+        
     return TokenObtainPairView.as_view()(request)
 
+
+
+
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+
+
+class HelloView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        content = {'message': 'Hello, World!'}
+        return Response(content)
 
 # @api_view(['POST'])
 # def create_task(request):

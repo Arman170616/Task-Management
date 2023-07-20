@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
+    'rest_framework.authtoken',
     'rest_framework_simplejwt',
     'task_manager_app',
     'rest_framework_swagger',

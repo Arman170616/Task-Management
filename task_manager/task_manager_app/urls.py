@@ -1,5 +1,22 @@
 from django.urls import path
-from .views import user_registration, user_login, create_task, get_all_tasks, get_task, update_task, delete_task, get_all_users, get_user, sort_tasks, filter_tasks, create_comment, get_all_comments, get_comment, update_comment, delete_comment
+from rest_framework_simplejwt import views as jwt_views
+from .views import (
+    user_registration, 
+    user_login, 
+    create_task, 
+    get_all_tasks, 
+    get_task, 
+    update_task, 
+    delete_task, 
+    get_all_users, 
+    get_user, 
+    sort_tasks, 
+    filter_tasks, 
+    create_comment, 
+    get_all_comments, 
+    get_comment, 
+    update_comment, 
+    delete_comment)
 
 urlpatterns = [
     path('register/', user_registration, name='user-registration'),
@@ -25,7 +42,7 @@ urlpatterns = [
     path('update-comment/<int:comment_id>/', update_comment, name='update-comment'),
     path('delete-comment/<int:comment_id>/', delete_comment, name='delete-comment'),
 
-
-
+    path('token/', jwt_views.TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/refresh/', jwt_views.TokenRefreshView.as_view(), name='token_refresh'),
 
 ]
