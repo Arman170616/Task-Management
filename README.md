@@ -1,13 +1,13 @@
 
 # Task Management
 
-Please follow the Instruction 
+Please follow the Instructions 
 
 
 
 ## Installation
 
-Install my-project with VirtualEnv
+To install thisproject with Virtual Environment
 
 ```bash
   git clone https://github.com/Arman170616/Task-Management.git
