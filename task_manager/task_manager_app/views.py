@@ -16,8 +16,12 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import Task, TaskComment
 from .serializers import TaskSerializer, TaskCommentSerializer, UserSerializer
-
+from .utils import role_required
 from .decorators import role_required
+
+
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
 
 
 @api_view(['POST'])
@@ -67,12 +71,6 @@ def user_login(request):
     return TokenObtainPairView.as_view()(request)
 
 
-
-
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.views import APIView
-
-
 class HelloView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -80,49 +78,7 @@ class HelloView(APIView):
         content = {'message': 'Hello, World!'}
         return Response(content)
 
-# @api_view(['POST'])
-# def create_task(request):
-#     serializer = TaskSerializer(data=request.data)
-#     if serializer.is_valid():
-#         serializer.save()
-#         return Response(serializer.data, status=status.HTTP_201_CREATED)
-#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-
-# @api_view(['PUT'])
-# def update_task(request, task_id):
-#     try:
-#         task = Task.objects.get(id=task_id)
-#     except Task.DoesNotExist:
-#         return Response({'error': 'Task not found.'}, status=status.HTTP_404_NOT_FOUND)
-#     serializer = TaskSerializer(task, data=request.data)
-#     if serializer.is_valid():
-#         serializer.save()
-#         return Response(serializer.data)
-#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-# @api_view(['POST'])
-# def create_task(request):
-#     serializer = TaskSerializer(data=request.data)
-#     if serializer.is_valid():
-#         serializer.save()
-#         return Response(serializer.data, status=status.HTTP_201_CREATED)
-#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-# @api_view(['PUT'])
-# def update_task(request, task_id):
-#     try:
-#         task = Task.objects.get(id=task_id)
-#     except Task.DoesNotExist:
-#         return Response({'error': 'Task not found.'}, status=status.HTTP_404_NOT_FOUND)
-#     serializer = TaskSerializer(task, data=request.data, partial=True)
-#     if serializer.is_valid():
-#         serializer.save()
-#         return Response(serializer.data)
-#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 def create_task(request):
@@ -146,11 +102,7 @@ def update_task(request, task_id):
         return Response(serializer.data)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# @api_view(['GET'])
-# def get_all_tasks(request):
-#     tasks = Task.objects.all()
-#     serializer = TaskSerializer(tasks, many=True)
-#     return Response(serializer.data)
+
 
 class TaskPagination(PageNumberPagination):
     page_size = 10
@@ -158,13 +110,13 @@ class TaskPagination(PageNumberPagination):
     max_page_size = 100
 
 
-@api_view(['GET'])
-def get_all_tasks(request):
-    paginator = TaskPagination()
-    tasks = Task.objects.all()
-    page = paginator.paginate_queryset(tasks, request)
-    serializer = TaskSerializer(page, many=True)
-    return paginator.get_paginated_response(serializer.data)
+# @api_view(['GET'])
+# def get_all_tasks(request):
+#     paginator = TaskPagination()
+#     tasks = Task.objects.all()
+#     page = paginator.paginate_queryset(tasks, request)
+#     serializer = TaskSerializer(page, many=True)
+#     return paginator.get_paginated_response(serializer.data)
 
 
 @api_view(['GET'])
@@ -303,3 +255,59 @@ def delete_comment(request, comment_id):
 
     comment.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+
+@api_view(['GET'])
+def get_user_tasks(request, user_id):
+    try:
+        user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    tasks_assigned_to_user = Task.objects.filter(assignee=user)
+    serializer = TaskSerializer(tasks_assigned_to_user, many=True)
+    user_data = UserSerializer(user).data
+
+    return Response({
+        'user_info': user_data,
+        'assigned_tasks': serializer.data
+    })
+
+
+@api_view(['POST', 'PUT'])
+def assign_task(request, task_id):
+    try:
+        task = Task.objects.get(id=task_id)
+    except Task.DoesNotExist:
+        return Response({'error': 'Task not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'POST':
+        # Assuming you send the user ID in the request data to assign the task to a user
+        user_id = request.data.get('user_id')
+        try:
+            user = User.objects.get(id=user_id)
+            task.assignee = user
+            task.save()
+            return Response({'message': 'Task assigned successfully.'}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'PUT':
+        
+        user_id = request.data.get('user_id')
+        try:
+            user = User.objects.get(id=user_id)
+            task.assignee = user
+            task.save()
+            return Response({'message': 'Assigned user updated successfully.'}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+@api_view(['GET'])
+# @role_required('admin')  
+def list_all_tasks(request):
+    tasks = Task.objects.all()
+    serializer = TaskSerializer(tasks, many=True)
+    return Response(serializer.data)

@@ -4,7 +4,7 @@ from .views import (
     user_registration, 
     user_login, 
     create_task, 
-    get_all_tasks, 
+    list_all_tasks, 
     get_task, 
     update_task, 
     delete_task, 
@@ -16,14 +16,17 @@ from .views import (
     get_all_comments, 
     get_comment, 
     update_comment, 
-    delete_comment)
+    delete_comment,
+    get_user_tasks,
+    assign_task
+    )
 
 urlpatterns = [
     path('register/', user_registration, name='user-registration'),
     path('login/', user_login, name='user-login'),
 
     path('tasks/', create_task, name='create-task'),
-    path('pagination/', get_all_tasks, name='get-all-tasks'),
+    path('get-all-tasks/', list_all_tasks, name='get-all-tasks'),
     
     path('get-task/<int:task_id>/', get_task, name='get-task'),
     path('update-task/<int:task_id>/', update_task, name='update-task'),
@@ -44,5 +47,8 @@ urlpatterns = [
 
     path('token/', jwt_views.TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', jwt_views.TokenRefreshView.as_view(), name='token_refresh'),
+
+    path('get-user-tasks/<int:user_id>/', get_user_tasks, name='get-user-tasks'),
+    path('tasks/<int:task_id>/assign/', assign_task, name='assign-task'),
 
 ]
