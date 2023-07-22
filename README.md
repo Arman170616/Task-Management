@@ -23,7 +23,7 @@ Create Virtual Environment
 ```
 Install requirements.txt
 ```bash
-pip Install -r requirements.txt
+pip install -r requirements.txt
 ```
 
 Task Management API Documentation
